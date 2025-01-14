@@ -1,10 +1,10 @@
 pipeline {
   agent {
-    // docker {
-      // Select a Docker image to run the below build, test on- Agent or VM
-      // image 'pxdonthala/mavdocim:latest'
-      // args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // mount Docker socket to access the host's Docker daemon
-    // }
+     docker {
+       Select a Docker image to run the below build, test on- Agent or VM
+       image 'badmancarteer/clinic-cicd-deployment1'
+       args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // mount Docker socket to access the host's Docker daemon
+    }
   }
   stages {
     stage('Checkout') {
