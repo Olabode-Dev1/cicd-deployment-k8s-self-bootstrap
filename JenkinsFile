@@ -27,7 +27,7 @@ pipeline {
         // }
         stage('Build and Push Docker Image') {
             environment {
-                DOCKER_IMAGE = "badmancarter/clinic-cicd-deployment1:${BUILD_NUMBER}"
+                DOCKER_IMAGE = "badmancarteer/clinic-cicd-deployment1:${BUILD_NUMBER}"
                 REGISTRY_CREDENTIALS = credentials('Docker_password')  // Docker registry credentials
             }
             steps {
