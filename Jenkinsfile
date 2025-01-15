@@ -22,10 +22,10 @@ pipeline {
     }
     stage('Static Code Analysis') {
       environment {
-        SONAR_URL = "http://40.118.247.151:9000"
+        SONAR_URL = "http://ec2-54-161-37-108.compute-1.amazonaws.com:9000"
       }
       steps {
-        withCredentials([string(credentialsId: 'Sonar', variable: 'SONAR_AUTH_TOKEN')]) {
+        withCredentials([string(credentialsId: 'sonar-pass', variable: 'SONAR_AUTH_TOKEN')]) {
           sh 'mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
         }
       }
@@ -33,8 +33,8 @@ pipeline {
     stage('Pull and Push Docker Image') {
     environment {
         ORIGINAL_IMAGE = "pxdonthala/sprint-petclinic"  // Original Docker image
-        YOUR_IMAGE = "your-dockerhub-username/sprint-petclinic:${BUILD_NUMBER}"  // Your own Docker Hub image
-        REGISTRY_CREDENTIALS = credentials('your-docker-cred-id')  // Your Docker Hub credentials
+        YOUR_IMAGE = "badmancarteer/sprint-petclinic:${BUILD_NUMBER}"  // Your own Docker Hub image
+        REGISTRY_CREDENTIALS = credentials('Docker-pass')  // Your Docker Hub credentials
     }
     steps {
         script {
@@ -45,7 +45,7 @@ pipeline {
             sh 'docker tag ${ORIGINAL_IMAGE} ${YOUR_IMAGE}'
 
             // Push the image to your own Docker Hub repository
-            docker.withRegistry('https://index.docker.io/v1/', "your-docker-cred-id") {
+            docker.withRegistry('https://index.docker.io/v1/', "Docker-pass") {
                 sh 'docker push ${YOUR_IMAGE}'
             }
         }
@@ -54,13 +54,13 @@ pipeline {
 
     stage('Update Deployment File') {
     environment {
-        GIT_REPO_NAME = "spring-petclinic"
-        GIT_USER_NAME = "your-username"
+        GIT_REPO_NAME = "cicd-deployment-k8s-self-bootstrap"
+        GIT_USER_NAME = "Olabode-Dev1"
     }
     steps {
-        withCredentials([usernamePassword(credentialsId: 'github-cred', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
+        withCredentials([usernamePassword(credentialsId: 'Github-pass', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
             sh '''
-                git config user.email "your-email@example.com"
+                git config user.email "aderojuolabode001@gmail.com"
                 git config user.name "${GITHUB_USERNAME}"
                 BUILD_NUMBER=${BUILD_NUMBER}
                 sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" k8s/deployment.yml
