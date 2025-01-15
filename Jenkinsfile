@@ -1,36 +1,31 @@
 pipeline {
   agent {
     docker {
-      image 'pxdonthala/mavdocim:latest'  // Image from the external repository
-      args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // mount Docker socket to access the host's Docker daemon
+      image 'pxdonthala/mavdocim:latest'
+      args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
     }
   }
   stages {
     stage('Checkout') {
       steps {
-        // Checkout the code
         checkout scm
         sh 'echo "Code has been checked out"'
       }
     }
-    stage('Start DB Services') {
+    stage('Install Docker Compose') {
       steps {
-        script {
-          // Ensure the docker-compose.yml file is available
-          sh 'ls -ltr'  // Check that the docker-compose.yml file is in the correct location
-          
-          // Start the DB services (MySQL and PostgreSQL)
-          sh 'docker-compose -f /docker-compose.yml up -d'
-          
-          // Wait for DB containers to initialize
-          sh 'sleep 30'  // Adjust as needed for container startup
-        }
+        sh '''
+          if ! command -v docker-compose &> /dev/null
+          then
+            echo "docker-compose could not be found, installing..."
+            curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            chmod +x /usr/local/bin/docker-compose
+          fi
+        '''
       }
     }
     stage('Build and Test') {
       steps {
-        // List the files and then build the project to create a JAR
-        sh 'ls -ltr'
         sh 'mvn clean package'
       }
     }
@@ -46,19 +41,14 @@ pipeline {
     }
     stage('Pull and Push Docker Image') {
       environment {
-        ORIGINAL_IMAGE = "pxdonthala/sprint-petclinic"  // Original Docker image
-        YOUR_IMAGE = "badmancarteer/sprint-petclinic:${BUILD_NUMBER}"  // Your own Docker Hub image
-        REGISTRY_CREDENTIALS = credentials('Docker-pass')  // Your Docker Hub credentials
+        ORIGINAL_IMAGE = "pxdonthala/sprint-petclinic"
+        YOUR_IMAGE = "badmancarteer/sprint-petclinic:${BUILD_NUMBER}"
+        REGISTRY_CREDENTIALS = credentials('Docker-pass')
       }
       steps {
         script {
-            // Pull the original image
             sh 'docker pull ${ORIGINAL_IMAGE}'
-
-            // Tag the image with your own repository name
             sh 'docker tag ${ORIGINAL_IMAGE} ${YOUR_IMAGE}'
-
-            // Push the image to your own Docker Hub repository
             docker.withRegistry('https://index.docker.io/v1/', "Docker-pass") {
                 sh 'docker push ${YOUR_IMAGE}'
             }
@@ -84,19 +74,3 @@ pipeline {
         }
       }
     }
-    stage('Stop DB Services') {
-      steps {
-        script {
-          // Stop the DB services after the tests
-          sh 'docker-compose -f path/to/docker-compose.yml down'
-        }
-      }
-    }
-  }
-  post {
-    always {
-      // Clean up resources even if the build fails
-      sh 'docker-compose -f path/to/docker-compose.yml down || true'
-    }
-  }
-}
