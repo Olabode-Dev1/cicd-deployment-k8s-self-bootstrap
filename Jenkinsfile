@@ -14,17 +14,6 @@ pipeline {
                 sh 'mvn clean package'
             }
         }
-        // stage('Static Code Analysis') {
-        // Uncomment this stage if you wish to run SonarQube analysis
-        //     environment {
-        //         SONAR_URL = "http://40.118.247.151:9000"
-        //     }
-        //     steps {
-        //         withCredentials([string(credentialsId: 'Sonar', variable: 'SONAR_AUTH_TOKEN')]) {
-        //             sh 'mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
-        //         }
-        //     }
-        // }
         stage('Build and Push Docker Image') {
             environment {
                 DOCKER_IMAGE = "badmancarteer/clinic-cicd-deployment1:${BUILD_NUMBER}"
