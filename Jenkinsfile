@@ -1,7 +1,6 @@
 pipeline {
   agent {
     docker {
-      // Select a Docker image to run the below build, test on- Agent or VM
       image 'pxdonthala/mavdocim:latest'  // Image from the external repository
       args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // mount Docker socket to access the host's Docker daemon
     }
@@ -12,6 +11,20 @@ pipeline {
         // Checkout the code
         checkout scm
         sh 'echo "Code has been checked out"'
+      }
+    }
+    stage('Start DB Services') {
+      steps {
+        script {
+          // Ensure the docker-compose.yml file is available
+          sh 'ls -ltr'  // Check that the docker-compose.yml file is in the correct location
+          
+          // Start the DB services (MySQL and PostgreSQL)
+          sh 'docker-compose -f /docker-compose.yml up -d'
+          
+          // Wait for DB containers to initialize
+          sh 'sleep 30'  // Adjust as needed for container startup
+        }
       }
     }
     stage('Build and Test') {
@@ -70,6 +83,20 @@ pipeline {
             '''
         }
       }
+    }
+    stage('Stop DB Services') {
+      steps {
+        script {
+          // Stop the DB services after the tests
+          sh 'docker-compose -f path/to/docker-compose.yml down'
+        }
+      }
+    }
+  }
+  post {
+    always {
+      // Clean up resources even if the build fails
+      sh 'docker-compose -f path/to/docker-compose.yml down || true'
     }
   }
 }
