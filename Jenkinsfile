@@ -31,12 +31,12 @@ pipeline {
       }
     }
     stage('Pull and Push Docker Image') {
-    environment {
+      environment {
         ORIGINAL_IMAGE = "pxdonthala/sprint-petclinic"  // Original Docker image
         YOUR_IMAGE = "badmancarteer/sprint-petclinic:${BUILD_NUMBER}"  // Your own Docker Hub image
         REGISTRY_CREDENTIALS = credentials('Docker-pass')  // Your Docker Hub credentials
-    }
-    steps {
+      }
+      steps {
         script {
             // Pull the original image
             sh 'docker pull ${ORIGINAL_IMAGE}'
@@ -49,15 +49,14 @@ pipeline {
                 sh 'docker push ${YOUR_IMAGE}'
             }
         }
+      }
     }
-}
-
     stage('Update Deployment File') {
-    environment {
+      environment {
         GIT_REPO_NAME = "cicd-deployment-k8s-self-bootstrap"
         GIT_USER_NAME = "Olabode-Dev1"
-    }
-    steps {
+      }
+      steps {
         withCredentials([usernamePassword(credentialsId: 'Github-pass', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_PASSWORD')]) {
             sh '''
                 git config user.email "aderojuolabode001@gmail.com"
@@ -69,5 +68,7 @@ pipeline {
                 git push https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
             '''
         }
+      }
     }
+  }
 }
