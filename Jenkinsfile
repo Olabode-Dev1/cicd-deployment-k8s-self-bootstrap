@@ -1,5 +1,9 @@
 pipeline {
     agent any  // Or use specific agent/docker configurations if needed
+    environment {
+        SONARQUBE_URL = 'http://<sonarqube-server-ip>:9000'  // Update with your SonarQube server URL
+        SONARQUBE_TOKEN = credentials('SonarQube-Token')  // Replace with your SonarQube token credentials ID
+    }
     stages {
         stage('Checkout') {
             steps {
@@ -14,10 +18,18 @@ pipeline {
                 sh 'mvn clean package'
             }
         }
+        stage('Static Code Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {  // Use the SonarQube server configured in Jenkins
+                    // Run the SonarQube analysis with Maven
+                    sh 'mvn sonar:sonar -Dsonar.login=${SONARQUBE_TOKEN} -Dsonar.host.url=${SONARQUBE_URL}'
+                }
+            }
+        }
         stage('Build and Push Docker Image') {
             environment {
                 DOCKER_IMAGE = "badmancarteer/clinic-cicd-deployment1:${BUILD_NUMBER}"
-                REGISTRY_CREDENTIALS = credentials('Docker-pass')  // Docker registry credentials
+                REGISTRY_CREDENTIALS = credentials('Docker_password')  // Docker registry credentials
             }
             steps {
                 script {
@@ -26,7 +38,7 @@ pipeline {
                     def dockerImage = docker.image("${DOCKER_IMAGE}")
                     
                     // Push the built Docker image to Docker Hub
-                    docker.withRegistry('https://index.docker.io/v1/', "Docker-pass") {
+                    docker.withRegistry('https://index.docker.io/v1/', "Docker_password") {
                         dockerImage.push()
                     }
                 }
@@ -38,7 +50,7 @@ pipeline {
                 GIT_USER_NAME = "olabode-Dev1"
             }
             steps {
-                withCredentials([string(credentialsId: 'Github-pass', variable: 'GITHUB_TOKEN')]) {
+                withCredentials([string(credentialsId: 'Github-password', variable: 'GITHUB_TOKEN')]) {
                     // Update the Kubernetes deployment YAML file with the new image tag
                     sh '''
                         git config user.email "aderojuolabode001@gmail.com"
