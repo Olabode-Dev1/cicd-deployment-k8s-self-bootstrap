@@ -82,7 +82,7 @@ resource "aws_instance" "ec2_instance1" {
   instance_type          = "t3a.large"
   subnet_id              = aws_default_subnet.default_az1.id
   vpc_security_group_ids = [aws_security_group.ec2_security_group.id]
-  key_name               = "virginia kp"
+  key_name               = "*"
   user_data              = file("docker-install.sh")
 
   tags = {
