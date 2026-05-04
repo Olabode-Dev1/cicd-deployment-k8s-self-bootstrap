@@ -42,6 +42,20 @@ out/
 ### VS Code ###
 .vscode/
 
+### Environment files ###
+.env
+.env.*
+!.env.example
+
+### Terraform ###
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+
 ### SDK Man ###
 .sdkmanrc
 

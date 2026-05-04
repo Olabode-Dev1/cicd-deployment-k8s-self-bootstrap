@@ -6,11 +6,11 @@ services:
     ports:
       - "3306:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=myrootpassword
-      - MYSQL_ALLOW_EMPTY_PASSWORD=true
-      - MYSQL_USER=petclinic
-      - MYSQL_PASSWORD=petclinic
-      - MYSQL_DATABASE=petclinic
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-}
+      - MYSQL_ALLOW_EMPTY_PASSWORD=${MYSQL_ALLOW_EMPTY_PASSWORD:-true}
+      - MYSQL_USER=${MYSQL_USER:-petclinic}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-petclinic}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-petclinic}
     volumes:
       - "./conf.d:/etc/mysql/conf.d:ro"
       
@@ -19,6 +19,6 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_PASSWORD=petclinic
-      - POSTGRES_USER=petclinic
-      - POSTGRES_DB=petclinic
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-petclinic}
+      - POSTGRES_USER=${POSTGRES_USER:-petclinic}
+      - POSTGRES_DB=${POSTGRES_DB:-petclinic}
