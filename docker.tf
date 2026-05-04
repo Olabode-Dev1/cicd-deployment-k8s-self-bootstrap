@@ -38,6 +38,30 @@ resource "aws_security_group" "ec2_security_group" {
   }
 
   ingress {
+    description = "sonarqube access"
+    from_port   = 9000
+    to_port     = 9000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "mysql access"
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "postgre access"
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     description = "ssh access"
     from_port   = 22
     to_port     = 22
@@ -65,7 +89,7 @@ data "aws_ami" "ubuntu" {
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
   }
 
   filter {
@@ -79,11 +103,11 @@ data "aws_ami" "ubuntu" {
 # Launch the EC2 instance for Docker server
 resource "aws_instance" "ec2_instance1" {
   ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t3a.large"
+  instance_type          = "t3.medium"
   subnet_id              = aws_default_subnet.default_az1.id
   vpc_security_group_ids = [aws_security_group.ec2_security_group.id]
-  key_name               = "*"
-  user_data              = file("docker-install.sh")
+  key_name               = "virginia kp"
+  user_data              = file("docker_install.sh")
 
   tags = {
     Name = "Docker-server"
@@ -94,4 +118,3 @@ resource "aws_instance" "ec2_instance1" {
 output "website_url" {
   value = "http://${aws_instance.ec2_instance1.public_dns}:8080"
 }
-
